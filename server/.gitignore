@@ -1,0 +1,21 @@
+# 依赖
+node_modules/
+npm-debug.log*
+npminstall-debug.log
+
+# 用户数据目录 - 包含各实例的cookie和session数据
+user_data/
+
+# 数据库文件（可选，如果不想提交的话）
+# *.db
+
+# 日志文件
+*.log
+
+# 临时文件
+*.tmp
+*.temp
+
+# 系统文件
+.DS_Store
+Thumbs.db
