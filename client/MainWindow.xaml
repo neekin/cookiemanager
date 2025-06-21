@@ -1,0 +1,217 @@
+<Window x:Class="CookieManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CookieManager"
+        mc:Ignorable="d"
+        Title="Cookie管理器" Height="900" Width="1400"
+        WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+        <local:BoolToActiveConverter x:Key="BoolToActiveConverter"/>
+        <local:BoolToColorConverter x:Key="BoolToColorConverter"/>
+    </Window.Resources>
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- 菜单栏 -->
+        <Menu Grid.Row="0" Background="White" BorderBrush="LightGray" BorderThickness="0,0,0,1">
+            <MenuItem Header="文件(_F)">
+                <MenuItem Header="退出(_X)" Click="ExitMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="设置(_S)">
+                <MenuItem Header="服务器配置(_C)..." Click="ServerConfigMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="重新连接服务器(_R)" Click="ReconnectMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="帮助(_H)">
+                <MenuItem Header="关于(_A)..." Click="AboutMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+        
+        <!-- 标题 -->
+        <TextBlock Grid.Row="1" Text="Cookie管理器" FontSize="24" FontWeight="Bold" 
+                   HorizontalAlignment="Center" Margin="0,10,0,20"/>
+        
+        <!-- URL输入和控制按钮 -->
+        <GroupBox Grid.Row="2" Header="浏览器控制" Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <Label Grid.Row="0" Grid.Column="0" Content="URL:"/>
+                <TextBox Grid.Row="0" Grid.Column="1" x:Name="UrlTextBox" 
+                         Text="https://www.example.com" VerticalAlignment="Center"/>
+                <Button Grid.Row="0" Grid.Column="2" x:Name="CreateBrowserButton" 
+                        Content="创建浏览器实例" Click="CreateBrowserButton_Click"/>
+                <Button Grid.Row="0" Grid.Column="3" x:Name="CloseBrowserButton" 
+                        Content="关闭浏览器" Click="CloseBrowserButton_Click"/>
+                <Button Grid.Row="0" Grid.Column="4" x:Name="RefreshButton" 
+                        Content="刷新状态" Click="RefreshButton_Click"/>
+                
+                <!-- 实例详细信息 -->
+                <Grid Grid.Row="1" Grid.ColumnSpan="5" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Label Grid.Row="0" Grid.Column="0" Content="名称:"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="NameTextBox" Margin="5"/>
+                    <Label Grid.Row="0" Grid.Column="2" Content="分组:"/>
+                    <TextBox Grid.Row="0" Grid.Column="3" x:Name="GroupTextBox" Margin="5"/>
+                    
+                    <Label Grid.Row="1" Grid.Column="0" Content="描述:"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="DescriptionTextBox" Margin="5"/>
+                    <Label Grid.Row="1" Grid.Column="2" Content="标签:"/>
+                    <TextBox Grid.Row="1" Grid.Column="3" x:Name="TagsTextBox" Margin="5" 
+                             ToolTip="使用逗号分隔多个标签"/>
+                </Grid>
+                
+                <!-- 状态信息 -->
+                <StackPanel Grid.Row="2" Grid.ColumnSpan="5" Orientation="Vertical" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="浏览器状态:"/>
+                        <TextBlock x:Name="BrowserStatusTextBlock" Text="未运行" VerticalAlignment="Center" 
+                                   Foreground="Red" FontWeight="Bold"/>
+                        <Label Content="当前URL:" Margin="20,0,0,0"/>
+                        <TextBlock x:Name="CurrentUrlTextBlock" Text="无" VerticalAlignment="Center" 
+                                   Foreground="Blue"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                        <TextBlock x:Name="WebSocketStatusTextBlock" Text="服务器连接: 未连接" VerticalAlignment="Center" Margin="0,0,20,0" 
+                                   Foreground="Red" FontWeight="Bold"/>
+                        <TextBlock x:Name="ClientCountTextBlock" Text="客户端连接数: 0" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                        <TextBlock x:Name="BackgroundTaskTextBlock" Text="后台任务: 未活跃" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                        <TextBlock x:Name="ClosedInstancesCountTextBlock" Text="已关闭实例数量: 0" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                        <TextBlock x:Name="CurrentIndexTextBlock" Text="当前处理索引: 0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+        
+        <!-- 浏览器实例列表 -->
+        <GroupBox Grid.Row="3" Header="实例管理" Padding="10" Margin="0,10,0,0">
+            <TabControl>
+                <TabItem Header="当前运行实例">
+                    <ListView x:Name="BrowserListView" ItemsSource="{Binding BrowserInstances}"
+                              MouseDoubleClick="BrowserListView_MouseDoubleClick">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="URL" Width="300" DisplayMemberBinding="{Binding Url}"/>
+                                <GridViewColumn Header="状态" Width="80" DisplayMemberBinding="{Binding Status}"/>
+                                <GridViewColumn Header="创建时间" Width="150" DisplayMemberBinding="{Binding CreateTime, StringFormat='MM-dd HH:mm:ss'}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </TabItem>
+                
+                <TabItem Header="所有实例">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button x:Name="RefreshInstancesButton" Content="刷新实例列表" 
+                                    Click="RefreshInstancesButton_Click" Margin="0,0,10,0"/>
+                            <Button x:Name="ViewStatsButton" Content="查看统计" 
+                                    Click="ViewStatsButton_Click"/>
+                        </StackPanel>
+                        
+                        <ListView Grid.Row="1" x:Name="AllInstancesListView" ItemsSource="{Binding AllInstances}"
+                                  MouseDoubleClick="AllInstancesListView_MouseDoubleClick">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="名称" Width="150" DisplayMemberBinding="{Binding name}"/>
+                                    <GridViewColumn Header="URL" Width="250" DisplayMemberBinding="{Binding url}"/>
+                                    <GridViewColumn Header="分组" Width="100" DisplayMemberBinding="{Binding group_name}"/>
+                                    <GridViewColumn Header="描述" Width="200" DisplayMemberBinding="{Binding description}"/>
+                                    <GridViewColumn Header="运行次数" Width="80" DisplayMemberBinding="{Binding total_open_count}"/>
+                                    <GridViewColumn Header="总运行时间(分)" Width="100" DisplayMemberBinding="{Binding total_runtime_minutes}"/>
+                                    <GridViewColumn Header="最后关闭" Width="150" DisplayMemberBinding="{Binding last_closed_at, StringFormat='MM-dd HH:mm:ss'}"/>
+                                    <GridViewColumn Header="状态" Width="60">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding is_active, Converter={StaticResource BoolToActiveConverter}}" 
+                                                           Foreground="{Binding is_active, Converter={StaticResource BoolToColorConverter}}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Grid>
+                </TabItem>
+                
+                <TabItem Header="后台任务队列">
+                    <ListView x:Name="ClosedInstancesListView" ItemsSource="{Binding ClosedInstances}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="URL" Width="300" DisplayMemberBinding="{Binding Url}"/>
+                                <GridViewColumn Header="关闭时间" Width="150" DisplayMemberBinding="{Binding ClosedAt, StringFormat='MM-dd HH:mm:ss'}"/>
+                                <GridViewColumn Header="最后访问" Width="150" DisplayMemberBinding="{Binding LastAccessed, StringFormat='MM-dd HH:mm:ss'}"/>
+                                <GridViewColumn Header="运行时间(分)" Width="100" DisplayMemberBinding="{Binding RuntimeMinutes}"/>
+                                <GridViewColumn Header="Cookie数量" Width="100" DisplayMemberBinding="{Binding CookiesCount}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </TabItem>
+            </TabControl>
+        </GroupBox>
+        
+        <!-- 操作说明 -->
+        <GroupBox Grid.Row="4" Header="后台任务说明" Padding="10" Margin="0,10,0,0">
+            <StackPanel>
+                <TextBlock Text="• 后台任务在无客户端连接时自动运行，按关闭时间顺序重启已关闭的浏览器实例"/>
+                <TextBlock Text="• 每个实例会运行3分钟保持Cookie活跃，然后自动关闭并处理下一个实例"/>
+                <TextBlock Text="• 客户端连接时后台任务会暂停，断开连接后重新启动"/>
+                <TextBlock Text="• 双击运行中的实例可以重新打开该URL"/>
+            </StackPanel>
+        </GroupBox>
+        
+        <!-- 操作说明 -->
+        <GroupBox Grid.Row="5" Header="操作说明" Padding="10" Margin="0,10,0,0">
+            <StackPanel>
+                <TextBlock Text="• 输入URL并点击'创建浏览器实例'来打开新的浏览器窗口"/>
+                <TextBlock Text="• 双击列表中的项目可以重新打开该URL"/>
+                <TextBlock Text="• 服务器确保同时只运行一个浏览器实例"/>
+                <TextBlock Text="• 系统会自动执行定时任务保持Cookie活跃状态"/>
+            </StackPanel>
+        </GroupBox>
+        
+        <!-- 状态栏 -->
+        <StatusBar Grid.Row="6" Margin="0,10,0,0">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusTextBlock" Text="就绪"/>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
