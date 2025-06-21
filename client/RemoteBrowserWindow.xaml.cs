@@ -8,20 +8,21 @@ using System.IO;
 using System.Text;
 using WebSocketSharp;
 using System.Linq;
+using CookieManager.Models;
 
 namespace CookieManager
 {
     public partial class RemoteBrowserWindow : Window
     {
         private readonly HttpClient httpClient;
-        private readonly string serverUrl = "http://localhost:3001";
-        private readonly string wsUrl = "ws://localhost:3001";
+        private readonly string serverUrl;
+        private readonly string wsUrl;
         private WebSocket? webSocket;
         private int instanceId;
         private string instanceUrl;
         private bool isConnected = false;
 
-        public RemoteBrowserWindow(int instanceId, string url)
+        public RemoteBrowserWindow(int instanceId, string url, AppConfig? config = null)
         {
             InitializeComponent();
             
@@ -29,12 +30,17 @@ namespace CookieManager
             this.instanceUrl = url;
             this.httpClient = new HttpClient();
             
+            // 使用配置或默认值
+            var appConfig = config ?? AppConfig.Load();
+            this.serverUrl = appConfig.ServerUrl;
+            this.wsUrl = appConfig.WebSocketUrl;
+            
             Title = $"远程浏览器实例 - {url} (ID: {instanceId})";
-            InstanceInfoTextBlock.Text = $"实例ID: {instanceId} | URL: {url}";
+            InstanceInfoTextBlock.Text = $"实例ID: {instanceId} | URL: {url} | 服务器: {serverUrl}";
             UrlTextBox.Text = url;
             
             InitializeAsync();
-        }        private async void InitializeAsync()
+        }private async void InitializeAsync()
         {
             try
             {
@@ -379,19 +385,70 @@ namespace CookieManager
         {
             try
             {
-                // 使用重新启动API而不是创建新实例
-                var response = await httpClient.PostAsync($"{serverUrl}/api/browser/instance/{instanceId}/restart", null);
-                var responseText = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<RestartInstanceResponse>(responseText);
-                
-                return result?.Success == true;
+                var response = await httpClient.PostAsync(
+                    $"{serverUrl}/api/browser/instance/{instanceId}/restart",
+                    new StringContent("", Encoding.UTF8, "application/json"));
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var result = JsonConvert.DeserializeObject<dynamic>(content);
+                    
+                    StatusTextBlock.Text = $"实例启动成功: {result?.Message}";
+                    return true;
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    StatusTextBlock.Text = $"启动失败: {response.StatusCode} - {errorContent}";
+                    return false;
+                }
             }
             catch (Exception ex)
             {
-                StatusTextBlock.Text = $"启动实例失败: {ex.Message}";
+                StatusTextBlock.Text = $"启动实例异常: {ex.Message}";
                 return false;
             }
-        }}
+        }
+
+        private async Task<bool> RefreshRemoteContent()
+        {
+            try
+            {
+                StatusTextBlock.Text = "正在获取远程内容...";
+                
+                var response = await httpClient.GetAsync($"{serverUrl}/api/browser/instance/{instanceId}/content");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var result = JsonConvert.DeserializeObject<RemoteContentResponse>(content);
+                    
+                    if (result?.Success == true && result.Data != null)
+                    {
+                        await DisplayRemoteContent(result.Data);
+                        return true;
+                    }
+                    else
+                    {
+                        StatusTextBlock.Text = $"内容获取失败: {result?.Message ?? "未知错误"}";
+                        return false;
+                    }
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    StatusTextBlock.Text = $"API请求失败: {response.StatusCode} - {errorContent}";
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusTextBlock.Text = $"获取内容异常: {ex.Message}";
+                return false;
+            }
+        }
+    }
 
     // 数据模型
     public class RemoteContentResponse

@@ -1,27 +1,26 @@
 <Window x:Class="CookieManager.ServerConfigWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="服务器配置" Height="400" Width="500"
+        Title="服务器配置" Height="480" Width="500"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize">
-    
-    <Grid Margin="20">
+        ResizeMode="CanResize" MinHeight="450" MinWidth="480">
+      <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>  <!-- 标题 -->
+            <RowDefinition Height="15"/>    <!-- 间距 -->
+            <RowDefinition Height="Auto"/>  <!-- 服务器地址 -->
+            <RowDefinition Height="10"/>    <!-- 间距 -->
+            <RowDefinition Height="Auto"/>  <!-- HTTPS选项 -->
+            <RowDefinition Height="10"/>    <!-- 间距 -->
+            <RowDefinition Height="Auto"/>  <!-- 连接超时 -->
+            <RowDefinition Height="10"/>    <!-- 间距 -->
+            <RowDefinition Height="Auto"/>  <!-- 自动连接 -->
+            <RowDefinition Height="15"/>    <!-- 间距 -->
+            <RowDefinition Height="Auto"/>  <!-- 预设服务器 -->
+            <RowDefinition Height="10"/>    <!-- 间距 -->
+            <RowDefinition Height="Auto"/>  <!-- 连接状态 -->
+            <RowDefinition Height="*"/>     <!-- 填充空间 -->
+            <RowDefinition Height="Auto"/>  <!-- 按钮 -->
         </Grid.RowDefinitions>
 
         <!-- 标题 -->
@@ -92,16 +91,17 @@
             <Label Grid.Row="0" Content="连接状态:" FontWeight="Bold"/>
             <TextBlock Grid.Row="2" x:Name="ConnectionStatusTextBlock" 
                        Text="未连接" Foreground="Red"/>
-        </Grid>
-
-        <!-- 按钮 -->
-        <StackPanel Grid.Row="14" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button x:Name="TestConnectionButton" Content="测试连接" Width="80" Height="30" 
-                    Margin="0,0,10,0" Click="TestConnectionButton_Click"/>
-            <Button x:Name="SaveButton" Content="保存" Width="60" Height="30" 
-                    Margin="0,0,10,0" Click="SaveButton_Click"/>
-            <Button x:Name="CancelButton" Content="取消" Width="60" Height="30" 
-                    Click="CancelButton_Click"/>
-        </StackPanel>
+        </Grid>        <!-- 按钮 -->
+        <Border Grid.Row="14" Background="LightGray" Margin="0,15,0,0" Padding="10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="TestConnectionButton" Content="测试连接" Width="80" Height="35" 
+                        Margin="0,0,10,0" Click="TestConnectionButton_Click"/>
+                <Button x:Name="SaveButton" Content="保存" Width="60" Height="35" 
+                        Margin="0,0,10,0" Click="SaveButton_Click" 
+                        Background="DodgerBlue" Foreground="White" FontWeight="Bold"/>
+                <Button x:Name="CancelButton" Content="取消" Width="60" Height="35" 
+                        Click="CancelButton_Click"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

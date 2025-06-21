@@ -23,7 +23,7 @@ namespace CookieManager
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly HttpClient httpClient;
+        private HttpClient httpClient;
         private WebSocket? webSocket;
         private AppConfig appConfig;
         private string serverUrl => appConfig.ServerUrl;
@@ -435,7 +435,7 @@ namespace CookieManager
                     if (result == MessageBoxResult.Yes)
                     {
                         // 打开远程浏览器窗口
-                        var remoteBrowserWindow = new RemoteBrowserWindow(instance.InstanceId, instance.Url);
+                        var remoteBrowserWindow = new RemoteBrowserWindow(instance.InstanceId, instance.Url, appConfig);
                         remoteBrowserWindow.Title = $"远程浏览器 - {instance.Url} (ID: {instance.InstanceId})";
                         remoteBrowserWindow.Show();
                         
@@ -509,7 +509,7 @@ namespace CookieManager
                     if (result == MessageBoxResult.Yes)
                     {
                         // 打开远程浏览器窗口
-                        var remoteBrowserWindow = new RemoteBrowserWindow(instance.id, instance.url);
+                        var remoteBrowserWindow = new RemoteBrowserWindow(instance.id, instance.url, appConfig);
                         remoteBrowserWindow.Title = $"远程浏览器 - {instance.name} (ID: {instance.id})";
                         remoteBrowserWindow.Show();
                         
@@ -535,6 +535,10 @@ namespace CookieManager
             {
                 // 重新加载配置
                 appConfig = configWindow.Config;
+                
+                // 重新创建HttpClient以避免属性修改错误
+                httpClient?.Dispose();
+                httpClient = new HttpClient();
                 httpClient.Timeout = TimeSpan.FromMilliseconds(appConfig.ConnectionTimeout);
                 
                 // 重新初始化连接
