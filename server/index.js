@@ -876,7 +876,7 @@ app.post('/api/browser/instance/:id/restart', async (req, res) => {
 });
 
 // 启动HTTP服务器
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`服务器运行在端口 ${PORT}`);
 });
